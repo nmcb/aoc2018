@@ -8,22 +8,12 @@ object Day01 extends App:
   val start1: Long =
     System.currentTimeMillis
 
-  val calories: Array[Array[Int]] =
+  val frequencies: List[Int] =
     Source
       .fromResource(s"input$day.txt")
-      .mkString
-      .split("\n\n")
-      .map(_.split("\n").map(_.toInt))
+      .getLines
+      .map(s => s.toInt)
+      .toList
 
-  val answer1: Int =
-    calories.map(_.sum).max
-
+  val answer1: Int = frequencies.sum
   println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
-
-  val start2: Long =
-    System.currentTimeMillis
-
-  val answer2: Int =
-    calories.map(_.sum).sorted.takeRight(3).sum
-
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
