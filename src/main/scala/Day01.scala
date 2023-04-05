@@ -17,3 +17,4 @@ object Day01 extends App:
 
   val answer1: Int = frequencies.sum
   println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+
