@@ -6,7 +6,7 @@ object Day07 extends App:
 
   val day: String =
     this.getClass.getName.drop(3).init
-
+  
   def tsort[A](edges: List[(A, A)])(using Ordering[A]): List[A] =
 
     @tailrec
@@ -18,7 +18,7 @@ object Day07 extends App:
         val next   = hasdeps.map((node,ds) => node -> (ds - found)) ++ ignore
         loop(next, done :+ found)
 
-    loop(edges.foldLeft(SortedMap[A, Set[A]]())((ds, e) =>
+    loop(edges.foldLeft(SortedMap[A, Set[A]]())((ds,e) =>
       ds + (e._1 -> ds.getOrElse(e._1, Set())) + (e._2 -> (ds.getOrElse(e._2, Set()) + e._1))
     ))
 
@@ -48,7 +48,7 @@ object Day07 extends App:
         queue.isEmpty && workers.isEmpty
 
       def tick(schedule: List[A]): (List[A], Work) =
-        val work = queue ++ schedule.map(a => (a, timer(a)))
+        val work = queue ++ schedule.map(a => a -> timer(a))
         val (add, left)  = work.splitAt(parallelization - workers.size)
         val (done, todo) = (workers ++ add).map((c,t) => (c, t - 1)).partition((_,t) => t == 0)
         (done.keys.toList, Work(queue = left, workers = todo))
@@ -56,12 +56,12 @@ object Day07 extends App:
     @tailrec
     def loop(dependencies: SortedMap[A,Set[A]], time: Int = 0, work: Work = Work(), done: List[A] = List()): (Int, List[A]) =
       if dependencies.isEmpty && work.isDone then (time, done) else
-        val (nodeps, hasdeps) = dependencies.partition(_._2.isEmpty)
+        val (nodeps, hasdeps) = dependencies.partition((_,ds) => ds.isEmpty)
         val (processed, working) = work.tick(nodeps.keys.toList)
         val next = hasdeps.map((node,ds) => node -> (ds -- processed))
         loop(next, time + 1, working, done :++ processed)
 
-    loop(edges.foldLeft(SortedMap[A, Set[A]]())((ds, e) =>
+    loop(edges.foldLeft(SortedMap[A,Set[A]]())((ds,e) =>
       ds + (e._1 -> ds.getOrElse(e._1, Set())) + (e._2 -> (ds.getOrElse(e._2, Set()) + e._1))
     ))
 
