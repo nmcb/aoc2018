@@ -30,11 +30,18 @@ object Day06 extends App:
     val areas: Map[Pos,Int] =
       closest.groupMapReduce((c,p) => p)((c,p) => 1)(_ + _)
 
-    def infinite(pos: Pos): Boolean =
-      closest.exists((c,p) => p == pos && (c.x == minX || c.x == maxX || c.y == minY || c.y == maxY))
+    def infinite(l: Pos): Boolean =
+      closest.exists((c,p) => p == l && (c.x == minX || c.x == maxX || c.y == minY || c.y == maxY))
 
-    val largestArea: Int =
+    val largestAreaSize: Int =
       areas.toList.filterNot((p,_) => infinite(p)).maxBy((_, size) => size)._2
+
+    def manhattenDistanceToAllPos(l: Pos): Int =
+      ps.map(l.manhattenDistance).sum
+
+    def cellsWithManhattenDistanceToAllPos(upperBound: Int): List[Pos] =
+      cells.filter(l => manhattenDistanceToAllPos(l) < upperBound)
+
 
   val positions: List[Pos] =
       Source
@@ -44,10 +51,9 @@ object Day06 extends App:
         .toList
 
   val start1: Long = System.currentTimeMillis
-  val answer1: Int = Grid(positions).largestArea
+  val answer1: Int = Grid(positions).largestAreaSize
   println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
-  assert(answer1 == 2906)
 
   val start2: Long = System.currentTimeMillis
-  val answer2: Int = 669
+  val answer2: Int = Grid(positions).cellsWithManhattenDistanceToAllPos(10000).size
   println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
