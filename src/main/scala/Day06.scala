@@ -9,32 +9,35 @@ object Day06 extends App:
       import math.*
       abs(x - p.x) + abs(y - p.y)
 
-  case class Grid(coordinates: List[Pos]):
+  type Coord = Pos
 
-    val minX = coordinates.map(_.x).min
-    val minY = coordinates.map(_.y).min
-    val maxX = coordinates.map(_.x).max
-    val maxY = coordinates.map(_.y).max
+  case class Grid(coordinates: List[Coord]):
+
+    val minX: Int = coordinates.map(_.x).min
+    val maxX: Int = coordinates.map(_.x).max
+
+    val minY: Int = coordinates.map(_.y).min
+    val maxY: Int = coordinates.map(_.y).max
 
     val positions: List[Pos] =
       (for { x <- minX to maxX ; y <- minY to maxY } yield Pos(x, y)).toList
 
-    val closest: List[(Pos,Pos)] =
+    val closest: List[(Pos,Coord)] =
       positions.flatMap(p =>
         coordinates.map(c => (c, c.manhattanDistance(p))).sortBy(_._2).take(2) match
-          case (_, d1) :: (_, d2) :: _ if d1 == d2 => None
-          case (c, _)             :: _             => Some(p, c)
+          case (_, d0) :: (_, d1) :: _ if d0 == d1 => None
+          case            (c,  _) :: _             => Some(p, c)
           case                       _             => sys.error(s"no distance found for position: $p")
       )
 
-    val areas: Map[Pos,Int] =
+    val areas: Map[Coord,Int] =
       closest.groupMapReduce((_,c) => c)((_,_) => 1)(_ + _)
 
-    def infinite(coordinate: Pos): Boolean =
+    def infinite(coordinate: Coord): Boolean =
       closest.exists((p,c) => c == coordinate && (p.x == minX || p.x == maxX || p.y == minY || p.y == maxY))
 
     val largestAreaSize: Int =
-      val (_, size) = areas.filterNot((p,_) => infinite(p)).maxBy((_, size) => size)
+      val (_, size) = areas.filterNot((p,_) => infinite(p)).maxBy((_,s) => s)
       size
 
     def manhattanDistanceToAllCoordinates(position: Pos): Int =
