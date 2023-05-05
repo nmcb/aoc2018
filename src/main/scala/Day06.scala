@@ -10,6 +10,8 @@ object Day06 extends App:
       abs(x - p.x) + abs(y - p.y)
 
   type Coord = Pos
+  object Coord:
+    def apply(x: Int, y: Int): Coord = Pos(x, y)
 
   case class Grid(coordinates: List[Coord]):
 
@@ -47,17 +49,17 @@ object Day06 extends App:
       positions.filter(p => manhattanDistanceToAllCoordinates(p) < upperBound)
 
 
-  val positions: List[Pos] =
+  val coordinates: List[Coord] =
       Source
         .fromResource(s"input$day.txt")
         .getLines
-        .map { case s"$x, $y" => Pos(x.toInt, y.toInt) }
+        .map { case s"$x, $y" => Coord(x.toInt, y.toInt) }
         .toList
 
   val start1: Long = System.currentTimeMillis
-  val answer1: Int = Grid(positions).largestAreaSize
+  val answer1: Int = Grid(coordinates).largestAreaSize
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   val start2: Long = System.currentTimeMillis
-  val answer2: Int = Grid(positions).positionsWithManhattanDistanceToAllCoordinates(10000).size
+  val answer2: Int = Grid(coordinates).positionsWithManhattanDistanceToAllCoordinates(10000).size
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
