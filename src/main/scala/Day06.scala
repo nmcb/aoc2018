@@ -18,8 +18,8 @@ object Day06 extends App:
     val minX: Int = coordinates.map(_.x).min
     val maxX: Int = coordinates.map(_.x).max
 
-    val minY: Int = coordinates.map(_.y).min
-    val maxY: Int = coordinates.map(_.y).max
+    val minY: Int = coordinates.minBy(_.y).y
+    val maxY: Int = coordinates.maxBy(_.y).y
 
     val positions: List[Pos] =
       (for { x <- minX to maxX ; y <- minY to maxY } yield Pos(x, y)).toList
