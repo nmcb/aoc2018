@@ -1,4 +1,6 @@
-import scala.io.*
+import scala.*
+import io.*
+import math.*
 
 object Day06 extends App:
 
@@ -6,7 +8,6 @@ object Day06 extends App:
 
   case class Pos(x: Int, y: Int):
     def manhattanDistance(p: Pos): Int =
-      import math.*
       abs(x - p.x) + abs(y - p.y)
 
   type Coord = Pos
@@ -22,18 +23,18 @@ object Day06 extends App:
     val maxY: Int = coordinates.maxBy(_.y).y
 
     val positions: List[Pos] =
-      (for { x <- minX to maxX ; y <- minY to maxY } yield Pos(x, y)).toList
+      (for { x <- minX to maxX ; y <- minY to maxY } yield Pos(x,y)).toList
 
     val closest: List[(Pos,Coord)] =
       positions.flatMap(p =>
-        coordinates.map(c => (c, c.manhattanDistance(p))).sortBy(_._2).take(2) match
-          case (_, d0) :: (_, d1) :: _ if d0 == d1 => None
-          case            (c,  _) :: _             => Some(p, c)
-          case                       _             => sys.error(s"no distance found for position: $p")
+        coordinates.map(c => (c,c.manhattanDistance(p))).sortBy((_,d) => d).take(2) match
+          case (_,d0) :: (_,d1) :: _ if d0 == d1 => None
+          case           (c, _) :: _             => Some(p,c)
+          case                     _             => sys.error(s"no distance found for position: $p")
       )
 
     val areas: Map[Coord,Int] =
-      closest.groupMapReduce((_,c) => c)((_,_) => 1)(_ + _)
+      closest.groupMapReduce((_,c) => c)((_,_) => 1)(_+_)
 
     def infinite(coordinate: Coord): Boolean =
       closest.exists((p,c) => c == coordinate && (p.x == minX || p.x == maxX || p.y == minY || p.y == maxY))
