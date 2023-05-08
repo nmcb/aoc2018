@@ -16,8 +16,8 @@ object Day06 extends App:
 
   case class Grid(coordinates: List[Coord]):
 
-    val minX: Int = coordinates.map(_.x).min
-    val maxX: Int = coordinates.map(_.x).max
+    val minX: Int = coordinates.minBy(_.x).x
+    val maxX: Int = coordinates.maxBy(_.x).x
 
     val minY: Int = coordinates.minBy(_.y).y
     val maxY: Int = coordinates.maxBy(_.y).y
