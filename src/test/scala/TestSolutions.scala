@@ -34,6 +34,10 @@ class TestSolutions extends AnyFunSuite:
     assertResult(47244)(actual = Day08.answer1)
     assertResult(17267)(actual = Day08.answer2)
   }
+  test("Day09 [2100ms]") {
+    assertResult(412117)(actual = Day09.answer1)
+    assertResult(3444129546L)(actual = Day09.answer2)
+  }
   test("Day10 [4ms]") {
     import Day10.*
     assertResult(
@@ -49,4 +53,3 @@ class TestSolutions extends AnyFunSuite:
         |######..#....#...####...#....#..######..#....#...###....######
         |""".stripMargin)(actual = sky.asString)
     assertResult(10813)(actual = Day10.answer2)
-  }
