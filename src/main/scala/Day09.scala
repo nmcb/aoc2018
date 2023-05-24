@@ -15,15 +15,16 @@ object Day09 extends App:
         case Nil =>
           init.reverse match
             case hd :: it => Circle(List(current), hd, it)
-            case Nil => this
+            case Nil      => this
 
     private def prev: Circle[A] =
       init match
-        case hd :: it => Circle(it, hd, current :: tail)
+        case hd :: it =>
+          Circle(it, hd, current :: tail)
         case Nil =>
           tail.reverse match
             case hd :: tl => Circle(tl, hd, List(current))
-            case Nil => this
+            case Nil      => this
 
     @tailrec
     final def rotate(n: Int): Circle[A] =
