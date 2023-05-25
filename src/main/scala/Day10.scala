@@ -17,7 +17,6 @@ object Day10 extends App:
 
 
   case class Box(min: Pos, max: Pos):
-
     def union(that: Box): Box =
       Box(min min that.min, max max that.max)
 
@@ -28,11 +27,11 @@ object Day10 extends App:
   object Box:
     def apply(p: Pos): Box = Box(p, p)
 
-    def bounding(poss: IterableOnce[Pos]): Box =
-      poss.iterator.map(apply).reduce(_ union _)
+    def bounding(ps: IterableOnce[Pos]): Box =
+      ps.iterator.map(apply).reduce(_ union _)
+
 
   case class Point(position: Pos, velocity: Pos):
-    def step: Point = Point(position + velocity, velocity)
     def step(t: Int): Point = Point(position + velocity * t, velocity)
 
   object Point:
@@ -42,7 +41,7 @@ object Day10 extends App:
           Point(Pos(x.trim.toInt, y.trim.toInt), Pos(vx.trim.toInt, vy.trim.toInt))
 
 
-  // https://en.wikipedia.org/wiki/Exponential_search
+  // returns the range containing the first domain which yields at least `x` as its codomain, starting from `min`.
   def exponentialLower[A, B](f: A => B, min: A)(x: B)(using int: Integral[A], ord: Ordering[B]): (A, A) =
     val a0 = int.zero
     val a1 = int.one
@@ -53,7 +52,7 @@ object Day10 extends App:
 
     if f(min) < x then loop(a0, a1) else  (min, min + a1)
 
-  // https://en.wikipedia.org/wiki/Binary_search_algorithm#Procedure_for_finding_the_leftmost_element
+  // returns the first domain, which yields at least `x` as its codomain.
   def binaryLower[A, B](f: A => B, min: A, max: A)(x: B)(using int: Integral[A], ord: Ordering[B]): A =
     val a1 = int.one
     val a2 = int.fromInt(2)
@@ -73,17 +72,11 @@ object Day10 extends App:
     binaryLower(f, min2, max)(x)
 
 
-  def boundingAreaPoints(points: Seq[Point]): Long =
-     Box.bounding(points.map(_.position)).area
+  def boundingArea(points: Seq[Point]): Int => Long =
+    t => Box.bounding(points.map(_.step(t).position)).area
 
-  def stepBoundingArea(points: Seq[Point], t: Int): Long =
-    boundingAreaPoints(points.map(_.step(t)))
-
-  def minimizePointsArea(points: Seq[Point]): (Seq[Point], Int) =
-    def slope(t: Int): Long = stepBoundingArea(points, t + 1) - stepBoundingArea(points, t)
-
-    val minSecond = exponentialBinaryLower(slope, 0)(0L)
-    (points.map(_.step(minSecond)), minSecond)
+  val start1: Long =
+    System.currentTimeMillis
 
   val points: List[Point] =
     Source
@@ -92,23 +85,24 @@ object Day10 extends App:
       .map(Point.fromString)
       .toList
 
-  val start1: Long = System.currentTimeMillis
-  val (sky, answer2) = minimizePointsArea(points)
+  val (sky, answer2) =
+
+    def slope(t: Int): Long =
+      boundingArea(points)(t + 1) - boundingArea(points)(t)
+
+    val fastest: Int =
+      exponentialBinaryLower(slope, 0)(0L)
+      
+    (points.map(_.step(fastest)), fastest)
 
   extension (points: Seq[Point]) def asString: String =
     val positions     = points.map(_.position)
-    val Box(min, max) = Box.bounding(positions)
+    val Box(min, max) = Box.bounding(points.map(_.position))
     val positionsSet  = positions.toSet
 
-    val sky = StringBuffer()
-    for (y <- min.y to max.y) {
-      for (x <- min.x to max.x) {
-        val pos = Pos(x, y)
-        if (positionsSet.contains(pos)) sky.append('#') else sky.append('.')
-      }
-      sky.append('\n')
-    }
-    sky.toString
+    (min.y to max.y).foldLeft(StringBuffer())((acc,y) => (min.x to max.x).foldLeft(acc)((str,x) =>
+        if positionsSet.contains(Pos(x,y)) then str.append('#') else str.append('.')
+    ).append('\n')).toString
 
-  println(s"Answer day $day part 1: ${sky.asString}[${System.currentTimeMillis - start1}ms]")
+  println(s"Answer day $day part 1: \n${sky.asString}[${System.currentTimeMillis - start1}ms]")
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")

@@ -53,3 +53,4 @@ class TestSolutions extends AnyFunSuite:
         |######..#....#...####...#....#..######..#....#...###....######
         |""".stripMargin)(actual = sky.asString)
     assertResult(10813)(actual = Day10.answer2)
+  }
