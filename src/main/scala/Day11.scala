@@ -31,35 +31,9 @@ object Day11 extends App:
 
 
   case class Grid(underlying: Grid.Square):
-
-//    def id: (Int, Int) =
-//      (s.map(_.x).min, s.map(_.y).min)
-//
-//    def totalPower(serial: Int): Int =
-//      s.map(_.powerLevel(serial)).sum
-//
-//    val cells: Grid.Square =
-//      Vector.tabulate(sizeX, sizeY)((x,y) => Cell().powerLevel(x + 1, y + 1))
-//
-//    def squareById(cell: Cell): Set[Cell] =
-//      def rangeX: Range = Range.inclusive(cell.x, cell.x + 2)
-//      def rangeY: Range = Range.inclusive(cell.y, cell.y + 2)
-//      cells.filter(c => rangeX.contains(c.x) && rangeY.contains(c.y))
-//
-//    val squares: Set[Square] =
-//      cells.map(c => { println(c) ; squareById(c) }).filter(_.size == 9)
-
+    
     def largestSquarePowerLevel(serial: Int): Int =
-      val blah =
-        underlying
-        .zipWithIndex
-        .foldLeft(0)((level, y) => row)
-//          .zipWithIndex
-//          .map((cell, x)) => cell
-//            .powerLevel(x, y)(serial))
-
-//      squares.groupMapReduce(_.id)(_.totalPower(serial))(_ + _).maxBy(_._2)._1
-      blah
+      ???
 
   object Grid:
 
