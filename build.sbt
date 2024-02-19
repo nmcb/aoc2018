@@ -5,7 +5,7 @@ lazy val aoc2018 =
              , name         := "aoc-2018"
              , version      := "0.1.0"
              , libraryDependencies ++= Seq(
-                 "org.scalatest"  %% "scalatest"  % "3.2.17" % "test"
+                 "org.scalatest"  %% "scalatest"  % "3.2.18" % "test"
                )
              )
 
