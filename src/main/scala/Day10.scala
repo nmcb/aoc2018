@@ -12,12 +12,12 @@ object Day10 extends App:
     def +(p: Pos): Pos = Pos(x + p.x, y + p.y)
     def -(p: Pos): Pos = Pos(x - p.x, y - p.y)
     def *(i: Int): Pos = Pos(x * i, y * i)
-    def min(that: Pos): Pos = Pos(x min that.x, y min that.y)
-    def max(that: Pos): Pos = Pos(x max that.x, y max that.y)
+    infix def min(that: Pos): Pos = Pos(x min that.x, y min that.y)
+    infix def max(that: Pos): Pos = Pos(x max that.x, y max that.y)
 
 
   case class Box(min: Pos, max: Pos):
-    def union(that: Box): Box =
+    infix def union(that: Box): Box =
       Box(min min that.min, max max that.max)
 
     def area: Long =
