@@ -34,8 +34,8 @@ object Day08 extends App:
 
   val start1: Long = System.currentTimeMillis
   val answer1: Int = Node.parseTree(input).licenceNumber
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
 
   val start2: Long = System.currentTimeMillis
   val answer2: Int = Node.parseTree(input).value
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer day $day part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
