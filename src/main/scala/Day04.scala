@@ -1,93 +1,92 @@
 import scala.io.*
 import scala.util.matching.*
-import java.time.*
 
 object Day04 extends App:
 
-  val day: String = getClass.getName.drop(3).init
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   enum Event:
     case BeginShift(guard: Int)
     case FallAsleep
     case WakeUp
 
-  case class Record(timestamp: String, event: Event):
+  import Event.*
+
+  type Timestamp = String
+
+  case class Record(timestamp: Timestamp, event: Event):
     val Timestamp: Regex = """\d{4}-\d{2}-\d{2} \d{2}:(\d{2})""".r
     def minute: Int =
       timestamp match
         case Timestamp(minute) => minute.toInt
 
-  object Records:
-    import Event.*
-
+  object Record:
     val RecordLine: Regex = """\[(.{16})\] (.*)""".r
     val GuardShift: Regex = """Guard #(\d+) begins shift""".r
 
-    def fromLines(input: List[String]): List[Record] =
+    def fromLines(input: Vector[String]): Vector[Record] =
       input
-        .map {
+        .map:
           case RecordLine(timestamp, event) =>
             Record(timestamp, event match
               case GuardShift(guard) => BeginShift(guard.toInt)
               case "falls asleep"    => FallAsleep
               case "wakes up"        => WakeUp
             )
-        }
-        .toList
         .sortBy(_.timestamp)
 
   case class Shift(guard: Int, sleep: Set[Int])
 
   object Shift:
 
-    def fromRecords(records: List[Record], shiftStarted: Option[Shift] = None, sleepStarted: Option[Int] = None): List[Shift] =
-      records match
-        case Nil =>
-          shiftStarted.toList
-        case record :: tl =>
-          record.event match
-            case Event.BeginShift(guard) =>
-              shiftStarted.toList ++ fromRecords(tl, Some(Shift(guard, Set.empty)))
-            case Event.FallAsleep =>
-              fromRecords(tl, shiftStarted, Some(record.minute))
-            case Event.WakeUp =>
-              fromRecords(tl, shiftStarted.map(shift => shift.copy(sleep =  shift.sleep ++ (sleepStarted.get until record.minute).toSet)))
+    def fromRecords(records: Vector[Record], shiftStarted: Option[Shift] = None, sleepStarted: Option[Int] = None): Vector[Shift] =
+      if records.isEmpty then
+        shiftStarted.toVector
+      else
+        val record = records.head
+        val rest   = records.tail
+        record.event match
+          case BeginShift(guard) =>
+            shiftStarted.toVector ++ fromRecords(rest, Some(Shift(guard, Set.empty)))
+          case FallAsleep =>
+            fromRecords(rest, shiftStarted, Some(record.minute))
+          case WakeUp =>
+            fromRecords(rest, shiftStarted.map(shift => shift.copy(sleep = shift.sleep ++ (sleepStarted.get until record.minute).toSet)))
 
-  trait Strategy:
+  def solve1(records: Vector[Record]): Int =
+    val shifts          = Shift.fromRecords(Day04.records)
+    val guardSleeps     = shifts.groupMapReduce(_.guard)(_.sleep.toSeq)(_ ++ _)
+    val (guard, sleeps) = guardSleeps.maxBy((_, minutes) => minutes.length)
+    val minute          = (0 until 60).maxBy(minute => sleeps.count(_ == minute))
+    guard * minute
 
-    def choose(shifts: List[Shift]): Int
+  lazy val records: Vector[Record] =
+    Record.fromLines(Source.fromResource(s"input$day.txt").getLines.toVector)
 
-    def solve(lines: List[String]): Int =
-      choose(Shift.fromRecords(Records.fromLines(lines)))
+  val start1  = System.currentTimeMillis
+  val answer1 = solve1(records)
+  println(s"day $day answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
 
-  object Strategy1 extends Strategy:
-    def choose(shifts: List[Shift]): Int =
-      val guardSleeps     = shifts.groupMapReduce(_.guard)(_.sleep.toSeq)(_ ++ _)
-      val (guard, sleeps) = guardSleeps.maxBy((_, minutes) => minutes.length)
-      val minute          = (0 until 60).maxBy(minute => sleeps.count(_ == minute))
-      guard * minute
+  def solve2(records: Vector[Record]): Int =
+    val shifts              = Shift.fromRecords(records)
+    val guardSleeps         = shifts.groupMapReduce(_.guard)(_.sleep.toVector)(_ ++ _)
+    val guardMinuteCount    = guardSleeps.view.mapValues(_.groupMapReduce(identity)(_ => 1)(_ + _)).toMap
+    val minuteMaxGuardCount = (0 until 60).map(minute => minute -> guardMinuteCount.view.mapValues(_.getOrElse(minute, 0)).maxBy((_, count) => count)).toMap
 
-  object Strategy2 extends Strategy {
-    override def choose(shifts: List[Shift]): Int = {
-      val guardSleeps              = shifts.groupMapReduce(_.guard)(_.sleep.toSeq)(_ ++ _)
-      val guardMinuteCount         = guardSleeps.view.mapValues(_.groupMapReduce(identity)(_ => 1)(_ + _)).toMap
-      val minuteMaxGuardCount      = (0 until 60).map(minute => minute -> guardMinuteCount.view.mapValues(_.getOrElse(minute, 0)).maxBy((_, count) => count)).toMap
-      val (minute, (guard, count)) = minuteMaxGuardCount.maxBy(_._2._2)
-      guard * minute
-    }
-  }
+    type GuardCount      = (Int,Int)
+    type GuardCountEvent = (Int,(Int,Int))
 
-  lazy val lines: List[String] =
-    Source
-      .fromResource(s"input$day.txt")
-      .getLines
-      .toList
+    extension (guardCount: GuardCount)
+      def guard: Int = guardCount._1
+      def count: Int = guardCount._2
 
+    extension (guardCountEvent: GuardCountEvent)
+      def minute: Int            = guardCountEvent._1
+      def guardCount: GuardCount = guardCountEvent._2
 
-  val start1: Long = System.currentTimeMillis
-  val answer1: Int = Strategy1.solve(lines)
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+    val result = minuteMaxGuardCount.maxBy(_.guardCount.count)
+    result.guardCount.guard * result.minute
 
-  val start2: Long = System.currentTimeMillis
-  val answer2: Int = Strategy2.solve(lines)
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
+  val start2  = System.currentTimeMillis
+  val answer2 = solve2(records)
+  println(s"Day $day answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")

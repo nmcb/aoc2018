@@ -5,18 +5,18 @@ import scala.math.Ordering.Implicits.*
 
 object Day10 extends App:
 
-  val day: String =
-    this.getClass.getName.drop(3).init
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Pos(x: Int, y: Int):
-    def +(p: Pos): Pos = Pos(x + p.x, y + p.y)
-    def -(p: Pos): Pos = Pos(x - p.x, y - p.y)
-    def *(i: Int): Pos = Pos(x * i, y * i)
+    infix def +(p: Pos): Pos = Pos(x + p.x, y + p.y)
+    infix def -(p: Pos): Pos = Pos(x - p.x, y - p.y)
+    infix def *(i: Int): Pos = Pos(x * i, y * i)
     infix def min(that: Pos): Pos = Pos(x min that.x, y min that.y)
     infix def max(that: Pos): Pos = Pos(x max that.x, y max that.y)
 
 
   case class Box(min: Pos, max: Pos):
+    
     infix def union(that: Box): Box =
       Box(min min that.min, max max that.max)
 
@@ -72,37 +72,39 @@ object Day10 extends App:
     binaryLower(f, min2, max)(x)
 
 
-  def boundingArea(points: Seq[Point]): Int => Long =
+  def boundingArea(points: Vector[Point]): Int => Long =
     t => Box.bounding(points.map(_.step(t).position)).area
 
-  val start1: Long =
-    System.currentTimeMillis
-
-  val points: List[Point] =
+  val points: Vector[Point] =
     Source
       .fromResource(s"input$day.txt")
       .getLines
       .map(Point.fromString)
-      .toList
+      .toVector
 
-  val (sky, answer2) =
+  extension (points: Vector[Point]) def asString: String =
+    val positions     = points.map(_.position)
+    val Box(min, max) = Box.bounding(points.map(_.position))
+    val positionsSet  = positions.toSet
+
+    (min.y to max.y).foldLeft(StringBuffer())((sb,y) => (min.x to max.x).foldLeft(sb)((sb,x) =>
+      if positionsSet.contains(Pos(x,y)) then sb.append('#') else sb.append('.')
+    ).append('\n')).toString
+
+  val (sky, fastest) =
 
     def slope(t: Int): Long =
       boundingArea(points)(t + 1) - boundingArea(points)(t)
 
     val fastest: Int =
-      exponentialBinaryLower(slope, 0)(0L)
-      
+      exponentialBinaryLower(slope,0)(0L)
+
     (points.map(_.step(fastest)), fastest)
 
-  extension (points: Seq[Point]) def asString: String =
-    val positions     = points.map(_.position)
-    val Box(min, max) = Box.bounding(points.map(_.position))
-    val positionsSet  = positions.toSet
+  val start1  = System.currentTimeMillis
+  val answer1 = sky.asString
+  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-    (min.y to max.y).foldLeft(StringBuffer())((acc,y) => (min.x to max.x).foldLeft(acc)((str,x) =>
-        if positionsSet.contains(Pos(x,y)) then str.append('#') else str.append('.')
-    ).append('\n')).toString
-
-  println(s"Answer day $day part 1: \n${sky.asString}[${System.currentTimeMillis - start1}ms]")
+  val start2: Long = System.currentTimeMillis
+  val answer2: Long = fastest
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")

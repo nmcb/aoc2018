@@ -4,17 +4,12 @@ import math.*
 
 object Day06 extends App:
 
-  val day: String = this.getClass.getName.drop(3).init
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Pos(x: Int, y: Int):
-    def manhattanDistance(p: Pos): Int =
-      abs(x - p.x) + abs(y - p.y)
+    infix def manhattan(p: Pos): Int = abs(x - p.x) + abs(y - p.y)
 
-  type Coord = Pos
-  object Coord:
-    def apply(x: Int, y: Int): Coord = Pos(x, y)
-
-  case class Grid(coordinates: List[Coord]):
+  case class Grid(coordinates: Vector[Pos]):
 
     val minX: Int = coordinates.minBy(_.x).x
     val maxX: Int = coordinates.maxBy(_.x).x
@@ -22,45 +17,51 @@ object Day06 extends App:
     val minY: Int = coordinates.minBy(_.y).y
     val maxY: Int = coordinates.maxBy(_.y).y
 
-    val positions: List[Pos] =
-      (for { x <- minX to maxX ; y <- minY to maxY } yield Pos(x,y)).toList
+    val positions: Vector[Pos] =
+      (for x <- minX to maxX ; y <- minY to maxY yield Pos(x,y)).toVector
 
-    val closest: List[(Pos,Coord)] =
-      positions.flatMap(p =>
-        coordinates.map(c => (c,c.manhattanDistance(p))).sortBy((_,d) => d).take(2) match
-          case (_,d0) :: (_,d1) :: _ if d0 == d1 => None
-          case           (c, _) :: _             => Some(p,c)
-          case                     _             => sys.error(s"no distance found for position: $p")
-      )
+    type UnitDistance = (Pos,Int)
 
-    val areas: Map[Coord,Int] =
+    extension (unitDistance: UnitDistance)
+      def coordinate: Pos = unitDistance._1
+      def distance: Int   = unitDistance._2
+
+    val closest: Vector[(Pos,Pos)] =
+      positions.flatMap: p =>
+        coordinates.map(c => (c, c manhattan p))
+          .sortBy(_.distance).take(2) match
+            case a +: b +: _ if a.distance == b.distance => None
+            case      a +: _                             => Some(p,a.coordinate)
+            case           _                             => sys.error(s"no distance found for position: $p")
+
+    val areas: Map[Pos,Int] =
       closest.groupMapReduce((_,c) => c)((_,_) => 1)(_+_)
 
-    def infinite(coordinate: Coord): Boolean =
+    def infinite(coordinate: Pos): Boolean =
       closest.exists((p,c) => c == coordinate && (p.x == minX || p.x == maxX || p.y == minY || p.y == maxY))
 
-    val largestAreaSize: Int =
+    def largestAreaSize: Int =
       val (_, size) = areas.filterNot((p,_) => infinite(p)).maxBy((_,s) => s)
       size
 
-    def manhattanDistanceToAllCoordinates(position: Pos): Int =
-      coordinates.map(position.manhattanDistance).sum
+    def manhattanSum(position: Pos): Int =
+      coordinates.map(position.manhattan).sum
 
-    def positionsWithManhattanDistanceToAllCoordinates(upperBound: Int): List[Pos] =
-      positions.filter(p => manhattanDistanceToAllCoordinates(p) < upperBound)
+    def withinManhattanSumLimit(limit: Int): Vector[Pos] =
+      positions.filter(p => manhattanSum(p) < limit)
 
 
-  val coordinates: List[Coord] =
+  val coordinates: Vector[Pos] =
       Source
         .fromResource(s"input$day.txt")
         .getLines
-        .map { case s"$x, $y" => Coord(x.toInt, y.toInt) }
-        .toList
+        .map { case s"$x, $y" => Pos(x.toInt, y.toInt) }
+        .toVector
 
   val start1: Long = System.currentTimeMillis
   val answer1: Int = Grid(coordinates).largestAreaSize
-  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   val start2: Long = System.currentTimeMillis
-  val answer2: Int = Grid(coordinates).positionsWithManhattanDistanceToAllCoordinates(10000).size
-  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
+  val answer2: Int = Grid(coordinates).withinManhattanSumLimit(10000).size
+  println(s"Day $day answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")

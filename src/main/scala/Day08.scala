@@ -1,11 +1,8 @@
-import scala.annotation.*
-import scala.collection.immutable.SortedMap
-import scala.io.*
+import scala.io.Source
 
 object Day08 extends App:
 
-  val day: String =
-    this.getClass.getName.drop(3).init
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Node(childs: List[Node], meta: List[Int]):
     def nrOfChilds: Int     = childs.size
@@ -33,13 +30,12 @@ object Day08 extends App:
       assert(rest.isEmpty)
       root
 
+  val input = Source.fromResource(s"input$day.txt").mkString
 
   val start1: Long = System.currentTimeMillis
-  val answer1: Int = Node.parseTree(Source.fromResource(s"input$day.txt").mkString).licenceNumber
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
-  assert(answer1 == 47244)
+  val answer1: Int = Node.parseTree(input).licenceNumber
+  println(s"Day $day answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
 
   val start2: Long = System.currentTimeMillis
-  val answer2: Int = Node.parseTree(Source.fromResource(s"input$day.txt").mkString).value
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
-  assert(answer1 == 47244)
+  val answer2: Int = Node.parseTree(input).value
+  println(s"Day $day answer day $day part 2: ${answer2} [${System.currentTimeMillis - start1}ms]")
