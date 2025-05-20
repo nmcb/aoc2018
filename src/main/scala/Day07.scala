@@ -47,11 +47,11 @@ object Day07 extends App:
 
   val start1: Long = System.currentTimeMillis
   val answer1: String = solve(steps, timer = _ => 1, parallelization = 1)._2.mkString("")
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
   assert(answer1 == "FHICMRTXYDBOAJNPWQGVZUEKLS")
 
 
   val start2: Long = System.currentTimeMillis
   val answer2: Int = solve(steps, timer = _.toInt - 4, parallelization = 5)._1
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
+  println(s"Day $day answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
   assert(answer2 == 946)
