@@ -34,4 +34,4 @@ object Day03 extends App:
   val start2  = System.currentTimeMillis
   val answer2 = 1 + claims.indexWhere(claim => claim.forall(pos => overlaps(pos) == 1))
   println(s"Day $day answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
-  
+
