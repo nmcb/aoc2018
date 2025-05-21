@@ -1,6 +1,3 @@
-import scala.annotation.tailrec
-import scala.io.Source
-
 object Day11 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
@@ -47,7 +44,7 @@ object Day11 extends App:
     cells.foldLeft(Map.empty[Cell,Int].withDefaultValue(0)): (result, cell) =>
       result + (cell -> (grid(cell) + result(cell + (-1,0)) + result(cell + (0,-1)) - result(cell + (-1,-1))))
 
-  /** the area sizes, cells and total power levels for given summed power level table and area size */
+  /** the area sizes, cells and total power levels for named summed power level table and given area size */
   def area(size: Int): Seq[(Int,Cell,Int)] =
     val cells = for y <- size to 300 ; x <- size to 300 yield (x,y)
     cells
