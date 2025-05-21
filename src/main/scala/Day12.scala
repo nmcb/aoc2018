@@ -16,7 +16,7 @@ object Day12 extends App:
     val rules = input.drop(2).toSet.collect:
       case s"$pattern => $output" if output == "#" => pattern
 
-    (input.drop(2).filter(_.last == '#').map(_.take(5)).toSet, plants)
+    (rules, plants)
 
   extension (plants: Set[Int])
 
