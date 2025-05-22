@@ -5,14 +5,19 @@ object Day12 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  val (rules, plants) =
+  type Pattern  = String
+  type PotIndex = Int
+  type Rules    = Set[Pattern]
+  type Plants   = Set[PotIndex]
+
+  val (rules: Rules, plants: Plants) =
     val input = Source.fromResource(s"input$day.txt").getLines.toVector
 
-    /** note that we only maintain pot indices that yield a plant */
+    /** note that we only collect pot indices that contain a plant */
     val plants = input(0) match
       case s"initial state: $pots" => pots.zipWithIndex.filter(_._1 == '#').map(_._2).toSet
 
-    /** note that we only maintain rules that yield a plant */
+    /** note that we only collect rules that yield a plant */
     val rules = input.drop(2).toSet.collect:
       case s"$pattern => $output" if output == "#" => pattern
 
@@ -20,33 +25,38 @@ object Day12 extends App:
 
   extension (plants: Set[Int])
 
-    def next(rules: Set[String]): Set[Int] =
+    /** returns the relevant surrounding pattern for given pot index */
+    def pattern(index: PotIndex): String =
+      (-2 to 2).map(i => if plants.contains(index + i) then '#' else '.').mkString
 
-      def surrounding(index: Int): String =
-        (-2 to 2).map(i => if plants.contains(index + i) then '#' else '.').mkString
-
+    /** returns the relevant range of plant containing pots */
+    def pots: Range =
       (plants.min - 2 to plants.max + 2)
-        .flatMap(pot => Option.when(rules.contains(surrounding(pot)))(pot))
-        .toSet
+
+    /** returns the next generation of plant containing pot indices from that range for given rules */
+    def next(rules: Rules): Set[Int] =
+      pots.flatMap(pot => Option.when(rules.contains(pattern(pot)))(pot)).toSet
+
+  def solve(plants: Plants, rules: Rules, generations: Long): Long =
+
+    /** utilises the observation that the problem converses linearly from generation 102 and on */
+    if generations >= 102 then
+      @tailrec
+      def go(plants: Plants, conversion: Int, generation: Int): Long =
+        val next  = plants.next(rules)
+        val delta = next.sum - plants.sum
+        if delta == conversion then
+          next.sum + delta * (generations - generation)
+        else
+          go(next, delta, generation + 1)
+      go(plants, 0, 1)
+    else
+      Iterator.iterate(plants)(_.next(rules)).drop(generations.toInt).next.sum.toLong
 
   val start1  = System.currentTimeMillis
-  val answer1 = Iterator.iterate(plants)(_.next(rules)).drop(20).next.sum
+  val answer1 = solve(plants, rules, 20)
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  /** utilises the fact that the problem converses */
-  def solve2(plants: Set[Int], rules: Set[String], times: Long): Long =
-    @tailrec
-    def go(plants: Set[Int], conversion: Int, generation: Int): Long =
-      val next = plants.next(rules)
-      val delta = next.sum - plants.sum
-      if delta == conversion then
-        next.sum + delta * (times - generation)
-      else
-        go(next, delta, generation + 1)
-
-    go(plants, 0, 1)
-
   val start2  = System.currentTimeMillis
-  val answer2 = solve2(plants, rules, times = 50000000000L)
+  val answer2 = solve(plants, rules, generations = 50000000000L)
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
-
