@@ -1,3 +1,5 @@
+import scala.collection.*
+
 object Day11 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
@@ -21,7 +23,9 @@ object Day11 extends App:
     def asIdString(size: Int): String =
       s"${cell.x - size + 1},${cell.y - size + 1}"
 
-  /* Given a value table i(x,y) a summed area table can be computed as:
+  /* Note:
+   *
+   * Given a value table i(x,y) a summed area table can be computed as:
    *
    * I(x,y) = i(x,y) + I(x-1,y) + I(x,y-1) - I(x-1,y-1)
    *
@@ -34,23 +38,24 @@ object Day11 extends App:
   val cells: Seq[Cell] =
     for y <- 1 to 300 ; x <- 1 to 300 yield (x,y)
 
-
   /** power level value table, i.e. the i(x,y) value table for named cells */
   val grid: Map[Cell,Int] =
     cells.map(c => c -> c.powerLevel).toMap
 
   /** summed power level table, i.e. the summed area table I(x,y) for named grid */
   val table: Map[Cell,Int] =
-    cells.foldLeft(Map.empty[Cell,Int].withDefaultValue(0)): (result, cell) =>
+    cells.foldLeft(immutable.Map.empty[Cell,Int].withDefaultValue(0)): (result, cell) =>
       result + (cell -> (grid(cell) + result(cell + (-1,0)) + result(cell + (0,-1)) - result(cell + (-1,-1))))
-
+  
   /** the area sizes, cells and total power levels for named summed power level table and given area size */
-  def area(size: Int): Seq[(Int,Cell,Int)] =
-    val cells = for y <- size to 300 ; x <- size to 300 yield (x,y)
-    cells
-      .map: cell =>
-        val total = table(cell) + table(cell + (-size,-size)) - table(cell + (-size,0)) - table(cell + (0,-size))
-        (size, cell, total)
+  def area(size: Int): Iterator[(Int,Cell,Int)] =
+    for
+      y <- (size to 300).iterator
+      x <- (size to 300).iterator
+    yield
+      val cell  = (x,y)
+      val total = table(cell) + table(cell + (-size,-size)) - table(cell + (-size,0)) - table(cell + (0,-size))
+      (size, cell, total)
 
   extension (result: (Int,Cell,Int))
     def total: Int = result._3
@@ -64,7 +69,7 @@ object Day11 extends App:
   println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   def solve2(): String =
-    val (size, cell, total) = (for size <- 1 to 300 yield area(size)).flatten.maxBy(_.total)
+    val (size, cell, total) = (for size <- (1 to 300).iterator yield area(size)).flatten.maxBy(_.total)
     s"${cell.asIdString(size)},${size.toString}"
 
   val start2  = System.currentTimeMillis
