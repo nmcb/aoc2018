@@ -75,4 +75,3 @@ object Day11 extends App:
   val start2  = System.currentTimeMillis
   val answer2 = solve2()
   println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
-

@@ -1,7 +1,7 @@
 import scala.annotation.tailrec
 import scala.io.Source
 
-object Day12 extends App:
+object Day13 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
