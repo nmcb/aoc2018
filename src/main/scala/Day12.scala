@@ -31,7 +31,7 @@ object Day12 extends App:
 
     /** returns the relevant range of plant containing pots */
     def pots: Range =
-      (plants.min - 2 to plants.max + 2)
+      plants.min - 2 to plants.max + 2
 
     /** returns the next generation of plant containing pot indices from that range for given rules */
     def next(rules: Rules): Set[Int] =
@@ -54,7 +54,7 @@ object Day12 extends App:
       Iterator.iterate(plants)(_.next(rules)).drop(generations.toInt).next.sum.toLong
 
   val start1  = System.currentTimeMillis
-  val answer1 = solve(plants, rules, 20)
+  val answer1 = solve(plants, rules, generations = 20)
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   val start2  = System.currentTimeMillis
