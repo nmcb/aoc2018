@@ -5,58 +5,159 @@ object Day13 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  type Pattern  = String
-  type PotIndex = Int
-  type Rules    = Set[Pattern]
-  type Plants   = Set[PotIndex]
+  enum Dir:
+    case N, E, S, W
 
-  val (rules: Rules, plants: Plants) =
-    val input = Source.fromResource(s"input$day.txt").getLines.toVector
+    infix def follow(c: Char): Dir =
+      (this, c) match
+        case (_, '|') | (_, '-') => this
+        case (N, '/')            => E
+        case (E, '/')            => N
+        case (S, '/')            => W
+        case (W, '/')            => S
+        case (N, '\\')           => W
+        case (E, '\\')           => S
+        case (S, '\\')           => E
+        case (W, '\\')           => N
+        case _                   => sys.error(s"unable to follow dir=$this, char=$c")
 
-    /** note that we only collect pot indices that contain a plant */
-    val plants = input(0) match
-      case s"initial state: $pots" => pots.zipWithIndex.filter(_._1 == '#').map(_._2).toSet
+    infix def turn(turn: Turn): Dir =
+      (this, turn) match
+        case (N, Turn.Left)     => W
+        case (E, Turn.Left)     => N
+        case (S, Turn.Left)     => E
+        case (W, Turn.Left)     => S
+        case (N, Turn.Right)    => E
+        case (E, Turn.Right)    => S
+        case (S, Turn.Right)    => W
+        case (W, Turn.Right)    => N
+        case (_, Turn.Straight) => this
 
-    /** note that we only collect rules that yield a plant */
-    val rules = input.drop(2).toSet.collect:
-      case s"$pattern => $output" if output == "#" => pattern
 
-    (rules, plants)
+  import Dir.*
 
-  extension (plants: Set[Int])
+  type Pos  = (Int,Int)
 
-    /** returns the relevant surrounding pattern for given pot index */
-    def pattern(index: PotIndex): String =
-      (-2 to 2).map(i => if plants.contains(index + i) then '#' else '.').mkString
+  extension (pos: Pos)
+    def x = pos._1
+    def y = pos._2
 
-    /** returns the relevant range of plant containing pots */
-    def pots: Range =
-      plants.min - 2 to plants.max + 2
+    infix def move(d: Dir): Pos =
+      d match
+        case N => (pos.x, pos.y - 1)
+        case E => (pos.x + 1, pos.y)
+        case S => (pos.x, pos.y + 1)
+        case W => (pos.x - 1, pos.y)
 
-    /** returns the next generation of plant containing pot indices from that range for given rules */
-    def next(rules: Rules): Set[Int] =
-      pots.flatMap(pot => Option.when(rules.contains(pattern(pot)))(pot)).toSet
+  type Grid = Vector[Vector[Char]]
 
-  def solve(plants: Plants, rules: Rules, generations: Long): Long =
+  extension (grid: Grid)
+    def sizeX = grid(0).size
+    def sizeY = grid.size
+    def charAt(p: Pos): Option[Char] = grid.lift(p.y).flatMap(_.lift(p.x))
 
-    /** utilises the observation that the problem converses linearly from generation 102 and on */
-    if generations >= 102 then
-      @tailrec
-      def go(plants: Plants, conversion: Int, generation: Int): Long =
-        val next  = plants.next(rules)
-        val delta = next.sum - plants.sum
-        if delta == conversion then
-          next.sum + delta * (generations - generation)
-        else
-          go(next, delta, generation + 1)
-      go(plants, 0, 1)
-    else
-      Iterator.iterate(plants)(_.next(rules)).drop(generations.toInt).next.sum.toLong
+  enum Turn:
+    case Left, Straight, Right
+
+    def next: Turn =
+      this match
+        case Left     => Straight
+        case Straight => Right
+        case Right    => Left
+
+  case class Cart(pos: Pos, dir: Dir, atIntersection: Turn = Turn.Left):
+
+    def move(grid: Grid): Cart =
+      val c = grid.charAt(pos move dir)
+      c match
+        case Some('|') | Some('-')  => copy(pos = pos move dir)
+        case Some('/') | Some('\\') => copy(pos = pos move dir, dir = dir follow c.get)
+        case Some('+')              => copy(pos = pos move dir, dir = dir turn atIntersection, atIntersection = atIntersection.next)
+        case _                      => sys.error(s"unexpected char at pos=$pos, char=$c")
+
+  val (grid: Grid, carts: Vector[Cart]) =
+    val lines =
+      Source
+        .fromResource(s"input$day.txt")
+        .getLines
+        .map(_.toVector)
+        .toVector
+
+    val carts =
+      for
+        y <- (0 until lines.sizeY).toVector
+        x <- (0 until lines.sizeX).toVector
+      yield
+        lines.charAt((x,y)) match
+          case Some(c) if c == '^' => Some(Cart((x,y), N))
+          case Some(c) if c == '>' => Some(Cart((x,y), E))
+          case Some(c) if c == 'v' => Some(Cart((x,y), S))
+          case Some(c) if c == '<' => Some(Cart((x,y), W))
+          case _                   => None
+
+    val grid =
+      lines.map(_.map:
+        case '^' | 'v' => '|'
+        case '<' | '>' => '-'
+        case c         => c
+      )
+
+    (grid , carts.flatten)
+
+  extension (posCount : (Pos,Int))
+    def pos: Pos   = posCount._1
+    def count: Int = posCount._2
+
+  def solve1(grid: Grid, carts: Vector[Cart]): String =
+
+    /**
+     * Don't move all carts per iteration or we'll miss collisions that pass each other, e.g.:
+     *
+     * # step 1
+     * --><--
+     *
+     * # step 2
+     * --<>--
+     *
+     */
+    @tailrec
+    def go(todo: Vector[Cart], done: Vector[Cart] = Vector.empty): Pos =
+      val positionCount = (todo ++ done).groupMapReduce(_.pos)(_ => 1)(_ + _)
+      if positionCount.exists(_.count > 1) then
+        positionCount.maxBy(_.count).pos
+      else if todo.isEmpty then
+        go(todo = done.sortBy(_.pos))
+      else
+        go(todo = todo.tail, done = todo.head.move(grid) +: done)
+
+    val collision = go(carts.sortBy(_.pos))
+    s"${collision.x},${collision.y}"
 
   val start1  = System.currentTimeMillis
-  val answer1 = solve(plants, rules, generations = 20)
+  val answer1 = solve1(grid, carts)
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
+
+  def solve2(grid: Grid, carts: Vector[Cart]): String =
+
+    @tailrec
+    def go(todo: Vector[Cart], done: Vector[Cart] = Vector.empty): Pos =
+      if (todo ++ done).size == 1 then {
+        /** don't forget to move the last cart one tick */
+        (todo ++ done).head.move(grid).pos
+      } else if todo.isEmpty then
+        go(todo = done.sortBy(_.pos))
+      else
+        val moved = todo.head.move(grid)
+        val positionCount = (moved +: (todo.tail ++ done)).groupMapReduce(_.pos)(_ => 1)(_ + _)
+        positionCount.find(_.count > 1) match
+          case Some(pos,_) => go(todo = todo.tail.filterNot(_.pos == pos), done = done.filterNot(_.pos == pos))
+          case None        => go(todo = todo.tail, done = todo.head.move(grid) +: done)
+
+    val collision = go(carts.sortBy(_.pos))
+    s"${collision.x},${collision.y}"
+
+
   val start2  = System.currentTimeMillis
-  val answer2 = solve(plants, rules, generations = 50000000000L)
+  val answer2 = solve2(grid, carts)
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
