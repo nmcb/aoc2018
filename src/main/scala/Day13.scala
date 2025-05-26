@@ -157,7 +157,6 @@ object Day13 extends App:
     val last = go(carts.sortBy(_.pos))
     s"${last.x},${last.y}"
 
-
   val start2  = System.currentTimeMillis
   val answer2 = solve2(grid, carts)
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
