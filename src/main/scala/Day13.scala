@@ -111,7 +111,7 @@ object Day13 extends App:
   def solve1(grid: Grid, carts: Vector[Cart]): String =
 
     /**
-     * Don't move all carts per iteration or we'll miss collisions that pass each other, e.g.:
+     * Don't move all carts per iteration, or we'll miss collisions that pass each other, e.g.:
      *
      * # step 1
      * --><--
@@ -142,20 +142,20 @@ object Day13 extends App:
 
     @tailrec
     def go(todo: Vector[Cart], done: Vector[Cart] = Vector.empty): Pos =
-      if (todo ++ done).size == 1 then {
+      if (todo ++ done).size == 1 then
         /** don't forget to move the last cart one tick */
         (todo ++ done).head.move(grid).pos
-      } else if todo.isEmpty then
+      else if todo.isEmpty then
         go(todo = done.sortBy(_.pos))
       else
         val moved = todo.head.move(grid)
         val positionCount = (moved +: (todo.tail ++ done)).groupMapReduce(_.pos)(_ => 1)(_ + _)
         positionCount.find(_.count > 1) match
           case Some(pos,_) => go(todo = todo.tail.filterNot(_.pos == pos), done = done.filterNot(_.pos == pos))
-          case None        => go(todo = todo.tail, done = todo.head.move(grid) +: done)
+          case None        => go(todo = todo.tail, done = moved +: done)
 
-    val collision = go(carts.sortBy(_.pos))
-    s"${collision.x},${collision.y}"
+    val last = go(carts.sortBy(_.pos))
+    s"${last.x},${last.y}"
 
 
   val start2  = System.currentTimeMillis
