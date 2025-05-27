@@ -103,7 +103,7 @@ object Day10 extends App:
 
   val start1  = System.currentTimeMillis
   val answer1 = sky.asString
-  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1:\n$answer1 [${System.currentTimeMillis - start1}ms]")
 
   val start2  = System.currentTimeMillis
   val answer2 = fastest

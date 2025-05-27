@@ -36,24 +36,28 @@ object Day14 extends App:
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   def solve2(input: Int): Int =
+
     val digits = input.toString.map(_.asDigit)
 
     type Search = (Recipes,Int)
 
-    val NotFound = -1
+    object Search:
+      val NotFound = -1
+      def init: Search = (Recipes.init, NotFound)
 
     extension (search: Search)
-      def recipes: Recipes    = search._1
-      def scores: Vector[Int] = search._1.scores
-      def leftOfInput: Int    = search._2
+      def recipes: Recipes           = search._1
+      def scores: Vector[Int]        = search._1.scores
+      def nrOfScoresLeftOfInput: Int = search._2
+
+      def next: Search =
+        (recipes.next, scores.indexOfSlice(digits, scores.length - digits.length - 1))
 
     Iterator
-      .iterate((Recipes.init, NotFound)): search =>
-        val leftOfInput = search.scores.indexOfSlice(digits, search.scores.length - digits.length - 1)
-        (search.recipes.next, leftOfInput)
-      .dropWhile(_.leftOfInput == NotFound)
+      .iterate(Search.init)(_.next)
+      .dropWhile(_.nrOfScoresLeftOfInput == Search.NotFound)
       .next
-      .leftOfInput
+      .nrOfScoresLeftOfInput
 
   val start2  = System.currentTimeMillis
   val answer2 = solve2(input)
