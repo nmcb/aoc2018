@@ -211,10 +211,8 @@ object Day15 extends App:
         case fighter                     => fighter
 
       Try(combat(grid, updated, elfDeath = true)).toOption
-        .map:
-          case (rounds, fighters) =>
-            val hpSum = fighters.map(_.hitPoints).sum
-            rounds * hpSum
+        .map: (rounds, fighters) =>
+          rounds * fighters.map(_.hitPoints).sum
 
     (4 to 200)
       .groupMapReduce(e => math.ceil(200.0 / e).toInt)(identity)(_ min _)
