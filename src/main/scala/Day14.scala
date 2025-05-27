@@ -1,6 +1,3 @@
-import scala.annotation.tailrec
-import scala.io.Source
-
 object Day14 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
