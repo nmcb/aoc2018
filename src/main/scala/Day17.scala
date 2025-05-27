@@ -1,4 +1,3 @@
-import scala.annotation.tailrec
 import scala.io.Source
 
 object Day17 extends App:
@@ -10,16 +9,17 @@ object Day17 extends App:
     def w: Pos = copy(x = x + 1)
     def s: Pos = copy(y = y + 1)
 
-  case class Area(minY: Int, maxY: Int, clay: Set[Pos], spring: Pos)
+  case class Area(clay: Set[Pos], minY: Int, maxY: Int, spring: Pos)
 
   enum Stream:
-    case Stopped, Flowing
+    case Stopped
+    case Flowing
 
   import Stream.*
   import Iterator.*
 
-  /** flowing and stopped positions*/
-  def waterfall(area: Area): (Int, Int) =
+  /** return all flowing and stopped positions */
+  def stream(area: Area): (Int,Int) =
     val stopped = collection.mutable.Set[Pos]()
     val flowing = collection.mutable.Set[Pos]()
 
@@ -35,8 +35,8 @@ object Day17 extends App:
           flowing += p
           Flowing
         case Stopped =>
-          val minX  = iterate(p)(_.e).dropWhile(next => go(next.s) == Stopped && !blocked(next.e)).next
-          val maxX  = iterate(p)(_.w).dropWhile(next => go(next.s) == Stopped && !blocked(next.w)).next
+          val minX = iterate(p)(_.e).dropWhile(next => go(next.s) == Stopped && !blocked(next.e)).next
+          val maxX = iterate(p)(_.w).dropWhile(next => go(next.s) == Stopped && !blocked(next.w)).next
           val surface = for x <- minX.x to maxX.x yield Pos(x, p.y)
           if blocked(minX.e) && blocked(maxX.w) then
             stopped ++= surface
@@ -68,18 +68,18 @@ object Day17 extends App:
 
 
   def solve1(area: Area): Int =
-    val (moving, stopped) = waterfall(area)
-    moving + stopped
+    val (flowing, stopped) = stream(area)
+    flowing + stopped
 
   val start1  = System.currentTimeMillis
   val answer1 = solve1(area)
-  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
 
   def solve2(area: Area): Int =
-    val (moving, stopped) = waterfall(area)
+    val (flowing, stopped) = stream(area)
     stopped
 
   val start2  = System.currentTimeMillis
   val answer2 = solve2(area)
-  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start1}ms]")

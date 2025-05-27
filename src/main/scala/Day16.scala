@@ -111,7 +111,7 @@ object Day16 extends App:
 
   val start1  = System.currentTimeMillis
   val answer1 = tests.map(comply).count(_.size >= 3)
-  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
 
   def reengineer(tests: Vector[Test]): Map[Int,Inst] =
@@ -142,4 +142,4 @@ object Day16 extends App:
 
   val start2  = System.currentTimeMillis
   val answer2 = solve2(tests, program)
-  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
+  println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
