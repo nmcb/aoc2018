@@ -81,10 +81,10 @@ object Day18 extends App:
 
   object Cycle:
 
-    import scala.collection._
+    import scala.collection.*
 
     extension [A](i: Iterator[A]) def zipWithPrev: Iterator[(Option[A],A)] =
-      new AbstractIterator[(Option[A], A)]:
+      new AbstractIterator[(Option[A],A)]:
 
         private var prev: Option[A] =
           None
@@ -98,29 +98,29 @@ object Day18 extends App:
           prev = Some(cur)
           (last, cur)
 
-    def find[A, B](a: A, next: A => A)(invariant: A => B): Cycle[A] =
+    def find[A,B](a: A)(next: A => A, invariant: A => B = identity): Cycle[A] =
 
-      val trace: mutable.Map[B, (A, Int)] = mutable.Map[B, (A, Int)]()
+      val trace: mutable.Map[B,(A,Int)] = mutable.Map[B,(A,Int)]()
 
       Iterator.iterate(a)(next)
         .iterator
         .zipWithPrev
         .zipWithIndex
         .map:
-          case ((last, previous), index) =>
-            (last, previous, trace.put(invariant(previous), (previous, index)), index)
+          case ((previous,current), index) =>
+            (previous, current, trace.put(invariant(current), (current,index)), index)
         .collectFirst:
-          case (Some(last), repeat, Some((previous, previousIndex)), index) =>
+          case (Some(previous), current, Some(first,firstIndex), index) =>
             Cycle(
-              stemSize        = previousIndex,
-              cycleSize       = index - previousIndex,
-              cycleHead       = previous,
-              cycleLast       = last,
-              cycleHeadRepeat = repeat,
+              stemSize        = firstIndex,
+              cycleSize       = index - firstIndex,
+              cycleHead       = first,
+              cycleLast       = previous,
+              cycleHeadRepeat = current,
               next            = next
             )
         .get
 
   val start2  = System.currentTimeMillis
-  val answer2 = Cycle.find(landscape, _.tick)(identity).simulate(1000000000).resourceValue
+  val answer2 = Cycle.find(landscape)(_.tick).simulate(1000000000).resourceValue
   println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start1}ms]")

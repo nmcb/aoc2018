@@ -41,7 +41,7 @@ object Day16 extends App:
     case EQRI
     case EQRR
 
-    def execute(codes: Codes)(mem: Mem): Mem = {
+    def execute(codes: Codes)(mem: Mem): Mem =
       val (_, a, b, c) = codes
       this match
         case ADDR => mem.setRR(a, b, c, (a: Int) => (b: Int) => a + b)
@@ -60,7 +60,6 @@ object Day16 extends App:
         case EQIR => mem.setIR(a, b, c, (a: Int) => (b: Int) => if a == b then 1 else 0)
         case EQRI => mem.setRI(a, b, c, (a: Int) => (b: Int) => if a == b then 1 else 0)
         case EQRR => mem.setRR(a, b, c, (a: Int) => (b: Int) => if a == b then 1 else 0)
-    }
 
   type Test  = (Mem,Codes,Mem)
 
