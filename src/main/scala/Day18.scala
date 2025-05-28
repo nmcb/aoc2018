@@ -98,7 +98,7 @@ object Day18 extends App:
           prev = Some(cur)
           (last, cur)
 
-    def find[A,B](a: A, next: A => A)(invariant: A => B): Cycle[A] =
+    def find[A,B](a: A)(next: A => A, invariant: A => B = identity): Cycle[A] =
 
       val trace: mutable.Map[B,(A,Int)] = mutable.Map[B,(A,Int)]()
 
@@ -122,5 +122,5 @@ object Day18 extends App:
         .get
 
   val start2  = System.currentTimeMillis
-  val answer2 = Cycle.find(landscape, _.tick)(identity).simulate(1000000000).resourceValue
+  val answer2 = Cycle.find(landscape)(_.tick).simulate(1000000000).resourceValue
   println(s"Day $day answer part 2: $answer2 [${System.currentTimeMillis - start1}ms]")
