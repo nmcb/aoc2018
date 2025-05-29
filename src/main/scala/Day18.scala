@@ -84,20 +84,20 @@ object Day18 extends App:
     import scala.collection.*
 
     extension [A](i: Iterator[A])
-      private def zipWithPrev: Iterator[(Option[A],A)] =
-        new AbstractIterator[(Option[A],A)]:
+      private def zipWithPrevious: Iterator[(A,Option[A])] =
+        new AbstractIterator[(A,Option[A])]:
   
-          private var prev: Option[A] =
+          private var last: Option[A] =
             None
   
           override def hasNext: Boolean =
             i.hasNext
   
-          override def next: (Option[A],A) =
-            val cur = i.next
-            val last = prev
-            prev = Some(cur)
-            (last, cur)
+          override def next: (A,Option[A]) =
+            val current  = i.next
+            val previous = last
+            last = Some(current)
+            (current, previous)
 
     def find[A,B](a: A)(next: A => A, invariant: A => B = identity): Cycle[A] =
 
@@ -105,13 +105,13 @@ object Day18 extends App:
 
       Iterator.iterate(a)(next)
         .iterator
-        .zipWithPrev
+        .zipWithPrevious
         .zipWithIndex
         .map:
-          case ((previous,current), index) =>
-            (previous, current, trace.put(invariant(current), (current,index)), index)
+          case ((current, previous), index) =>
+            (current, previous, trace.put(invariant(current), (current,index)), index)
         .collectFirst:
-          case (Some(previous), current, Some(first,firstIndex), index) =>
+          case (current, Some(previous), Some(first,firstIndex), index) =>
             Cycle(
               stemSize        = firstIndex,
               cycleSize       = index - firstIndex,
