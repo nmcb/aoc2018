@@ -1,6 +1,5 @@
 import scala.annotation.tailrec
 import scala.io.Source
-import scala.util.Try
 
 object Day21 extends App:
 
