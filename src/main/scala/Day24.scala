@@ -12,9 +12,11 @@ object Day24 extends App:
 
   import Army.*
 
+  type AttackKind = String
+  
   case class Attribute(hitPower: Int, initiative: Int)
-  case class Defense(immune: Set[String], weak: Set[String])
-  case class Attack(damage: Int, kind: String)
+  case class Defense(immune: Set[AttackKind], weak: Set[AttackKind])
+  case class Attack(damage: Int, kind: AttackKind)
 
   case class Group(army: Army, attribute: Attribute, defense: Defense, attack: Attack)(var units: Int):
 
@@ -29,9 +31,9 @@ object Day24 extends App:
       else
         attacker.effectivePower
 
-  def groups(lines: Vector[String], boost: Int): Vector[Group] =
+  def groups(lines: Vector[AttackKind], boost: Int): Vector[Group] =
 
-    def parseGroup(army: Army, boost: Int, line: String): Group =
+    def parseGroup(army: Army, boost: Int, line: AttackKind): Group =
       val GroupLine  = """(\d+) units each with (\d+) hit points (?:.*)with an attack that does (\d+) (\w+) damage at initiative (\d+)""".r
       val ImmuneLine = """immune to (.+?)[;|\)]""".r.unanchored
       val WeakLine   = """weak to (.+?)[;|\)]""".r.unanchored
@@ -99,7 +101,7 @@ object Day24 extends App:
     else
       fight(groups)
 
-  val lines: Vector[String] =
+  val lines: Vector[AttackKind] =
     Source.fromResource(s"input$day.txt").getLines.toVector
 
   val start1  = System.currentTimeMillis
