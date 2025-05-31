@@ -102,7 +102,7 @@ object Day22 extends App:
   /** a-star with manhattan distance as heuristic */
   def travelTime(from: State, to: State): Int =
     val times = collection.mutable.Map(from -> 0)
-    val queue = collection.mutable.PriorityQueue(from -> 0)(using Ordering.by(-_._2))
+    val queue = collection.mutable.PriorityQueue(from -> 0)(using Ordering.by[(State,Int),Int](_._2).reverse)
 
     def heuristic(state: State) =
       state.region manhattan to.region
@@ -112,7 +112,7 @@ object Day22 extends App:
 
       if current == to then return times(to)
 
-      current.actions.foreach: (neighbour, delta) =>
+      current.actions.foreach: (neighbour,delta) =>
         val total = times(current) + delta
         if !times.contains(neighbour) || total < times(neighbour) then
           times(neighbour) = total
